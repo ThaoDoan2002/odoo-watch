@@ -96,7 +96,7 @@ def extract_partners(html: str) -> str:
 def fetch_with_retry(url: str, retries: int = 3, backoff: float = 10.0) -> requests.Response:
     """Fetch URL with retry on 5xx errors."""
     for attempt in range(retries):
-        response = requests.get(url, timeout=30, headers=HEADERS)
+        response = requests.get(url, timeout=(10, 30), headers=HEADERS)
         if response.status_code < 500 or attempt == retries - 1:
             response.raise_for_status()
             return response
@@ -134,15 +134,19 @@ def main():
                 content = extract_partners(html)
                 if watch.get("paginate"):
                     page = 2
-                    while True:
+                    max_pages = watch.get("max_pages", 20)
+                    while page <= max_pages:
                         paged_url = f"{url}?page={page}"
-                        print(f"  -> fetching page {page} ...")
+                        print(f"  -> fetching page {page}/{max_pages} ...")
                         resp = fetch_with_retry(paged_url)
                         more = extract_partners(resp.content.decode("utf-8"))
                         if not more.strip():
+                            print(f"  -> no more results at page {page}, stopping.")
                             break
                         content = content.rstrip("\n") + "\n" + more
                         page += 1
+                    else:
+                        print(f"  -> reached max_pages={max_pages}, stopping.")
             elif watch.get("extract") == "selector":
                 content = extract_selector(html, watch["selector"])
             else:
