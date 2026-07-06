@@ -50,14 +50,10 @@ jobs:
 
       - name: Generate PR description
         if: steps.check.outputs.changed == 'true'
-        continue-on-error: true
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-        run: python3 describe_changes.py > pr_body.md
-
-      - name: Fallback PR description
-        if: steps.check.outputs.changed == 'true' && !hashFiles('pr_body.md')
-        run: echo "chore: update odoo_partners_vietnam.txt" > pr_body.md
+        run: |
+          python3 describe_changes.py > pr_body.md || echo "chore: update odoo_partners_vietnam.txt" > pr_body.md
 
       - name: Create PR
         if: steps.check.outputs.changed == 'true'
