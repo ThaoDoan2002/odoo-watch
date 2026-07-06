@@ -2,6 +2,9 @@ name: Update Odoo Partners Vietnam
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - test-main
 
 permissions:
   contents: write
@@ -60,7 +63,7 @@ jobs:
             --title "chore: update odoo_partners_vietnam.txt $(date -u +%Y-%m-%d)" \
             --body-file pr_body.md \
             --head "$BRANCH" \
-            --base main
+            --base test-main
 
       - name: Auto-merge PR
         if: steps.check.outputs.changed == 'true'
