@@ -133,6 +133,7 @@ def main():
             elif watch.get("extract") == "partners":
                 content = extract_partners(html)
                 if watch.get("paginate"):
+                    seen_lines = set(content.strip().splitlines())
                     page = 2
                     max_pages = watch.get("max_pages", 20)
                     while page <= max_pages:
@@ -143,7 +144,12 @@ def main():
                         if not more.strip():
                             print(f"  -> no more results at page {page}, stopping.")
                             break
-                        content = content.rstrip("\n") + "\n" + more
+                        new_lines = [l for l in more.strip().splitlines() if l not in seen_lines]
+                        if not new_lines:
+                            print(f"  -> page {page} returned duplicate data, stopping.")
+                            break
+                        seen_lines.update(new_lines)
+                        content = content.rstrip("\n") + "\n" + "\n".join(new_lines) + "\n"
                         page += 1
                     else:
                         print(f"  -> reached max_pages={max_pages}, stopping.")
